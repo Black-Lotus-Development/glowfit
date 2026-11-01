@@ -19,7 +19,9 @@ const BASE = process.env.YOUCAM_BASE_URL || "https://yce-api-01.makeupar.com";
 const PORT = +process.env.PORT || 3000;
 const CONCERNS = ["wrinkle", "acne", "pore", "texture", "redness", "oiliness", "moisture", "radiance"];
 const PUBLIC = path.join(__dirname, "public");
-const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png" };
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg" };
+// Catalog garments are YouCam's own sample photos; only those URLs may be passed through as ref_file_url.
+const REF_HOST = "https://plugins-media.makeupar.com/strapi/assets/";
 
 // ---------- YouCam client ----------
 async function yc(method, route, body) {
@@ -29,7 +31,7 @@ async function yc(method, route, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(json.error || `YouCam ${res.status}`, json.error_code, res.status);
+  if (!res.ok) throw new ApiError(FRIENDLY[json.error_code] || json.error || `YouCam ${res.status}`, json.error_code, res.status === 401 ? 502 : res.status);
   return json;
 }
 class ApiError extends Error {
@@ -74,6 +76,14 @@ const FRIENDLY = {
   error_multi_person: "Only one person per photo, please.",
   error_nsfw_content_detected: "That image was rejected by the content filter.",
   error_invalid_ref: "We couldn't recognise a garment in the clothing image.",
+  error_no_face: "We couldn't find a face. Use a clear, front-facing selfie.",
+  error_face_parsing: "We couldn't read your face clearly. Try a sharper photo in even light.",
+  error_invalid_src: "Your photo needs to show your upper body, not just legs or feet.",
+  error_apply_region_mismatch: "That garment doesn't match what's visible in your photo. Try a full-body photo or another garment type.",
+  error_editing_failed: "The try-on came out unchanged. Try a different photo or garment.",
+  exceed_max_filesize: "That image is too large. Use one under 10 MB and 4096px.",
+  CreditInsufficiency: "The YouCam account is out of API units.",
+  InvalidAccessToken: "The YouCam API key is invalid. Check YOUCAM_API_KEY in .env.",
 };
 const friendly = (c) => FRIENDLY[c] || (typeof c === "string" ? c : "Something went wrong.");
 
@@ -110,7 +120,7 @@ async function tryOn({ person, garment, garmentUrl, category }) {
   const body = { garment_category: cat };
   body.src_file_id = await uploadImage(person, "person.jpg");
   if (garment) body.ref_file_id = await uploadImage(garment, "garment.jpg");
-  else if (garmentUrl && /^https:\/\//.test(garmentUrl)) body.ref_file_url = garmentUrl;
+  else if (typeof garmentUrl === "string" && garmentUrl.startsWith(REF_HOST)) body.ref_file_url = garmentUrl;
   else throw new ApiError("Choose or upload a garment.", "no_garment", 400);
   const task = await yc("POST", "/s2s/v2.0/task/cloth-v4", body);
   const data = await pollTask("/s2s/v2.0/task/cloth-v4", task.data.task_id, 120000);

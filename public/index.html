@@ -39,7 +39,7 @@
           <img id="preview" alt="Your selfie preview" hidden>
         </div>
         <video id="video" autoplay playsinline hidden></video>
-        <div class="scanrow"><button class="go" id="analyze" disabled>Analyze my skin</button><button class="alt" id="camBtn">Use camera</button></div>
+        <div class="scanrow"><button class="go" id="analyze" disabled>Analyze my skin</button><button class="alt" id="camBtn">Use camera</button><button class="alt" id="sampleFace">Try a sample face</button></div>
         <p class="err" id="scanErr" role="alert" hidden></p>
         <p class="note">Your photo goes only to the YouCam API for analysis. This app does not store it.</p>
       </div>
@@ -103,6 +103,7 @@
       <h3>Your photo</h3>
       <p class="note">Full-body, front-facing, one person.</p>
       <div class="upload" id="personDrop" role="button" tabindex="0" aria-label="Upload a full-body photo of yourself"><input type="file" id="personFile" accept="image/jpeg,image/png" hidden><span id="personIdle">Upload a full-body photo</span><img id="personPrev" hidden alt="Your full-body photo"></div>
+      <button class="alt sm" id="sampleModel" style="margin-top:10px">Use a sample model</button>
       <h3 style="margin-top:28px">Pick a garment</h3>
       <div id="garments" class="garments"></div>
       <div class="upload small" id="garmentDrop" role="button" tabindex="0" aria-label="Upload your own garment photo"><input type="file" id="garmentFile" accept="image/jpeg,image/png" hidden><span id="garmentIdle">Or upload your own garment photo</span></div>
@@ -127,7 +128,7 @@
   <a class="tile t-cta" href="#" data-go="scan"><span>Scan your skin</span><svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#0f0f0f" stroke-width="4" aria-hidden="true"><path d="M8 32 32 8M14 8h18v18"/></svg></a>
 </footer>
 
-<p class="credits">Pictures: <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_15)_BHL280708.jpg">Plate 15</a> and <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_27)_BHL280760.jpg">Plate 27</a> by Pierre-Joseph Redouté, 1802, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_American_Flora._Vol._1,_1855_-_pl._15_Aloe_vera,_Aloe_succotrina_(6022329218).jpg">The American Flora, 1855</a>, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_dictionary_of_needlework_-_an_encyclopaedia_of_artistic,_plain,_and_fancy_needlework_dealing_fully_with_the_details_of_all_the_stitches_employed,_the_method_of_working,_the_materials_used,_the_(14595702850).jpg">The Dictionary of Needlework, 1882</a>, Internet Archive Book Images, no known copyright restrictions. All via Wikimedia Commons.</p>
+<p class="credits">Pictures: <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_15)_BHL280708.jpg">Plate 15</a> and <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_27)_BHL280760.jpg">Plate 27</a> by Pierre-Joseph Redouté, 1802, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_American_Flora._Vol._1,_1855_-_pl._15_Aloe_vera,_Aloe_succotrina_(6022329218).jpg">The American Flora, 1855</a>, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_dictionary_of_needlework_-_an_encyclopaedia_of_artistic,_plain,_and_fancy_needlework_dealing_fully_with_the_details_of_all_the_stitches_employed,_the_method_of_working,_the_materials_used,_the_(14595702850).jpg">The Dictionary of Needlework, 1882</a>, Internet Archive Book Images, no known copyright restrictions. All via Wikimedia Commons. Sample face, model and try-on looks: YouCam API sample images by Perfect Corp.</p>
 <div id="scrim" class="scrim" hidden></div>
 <aside id="bag" class="bag" role="dialog" aria-modal="true" aria-labelledby="bagTitle" hidden>
   <div class="bagHead"><h3 id="bagTitle">Your bag</h3><button id="bagClose" aria-label="Close bag">Close</button></div>

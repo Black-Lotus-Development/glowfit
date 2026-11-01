@@ -30,19 +30,11 @@ const CLASHES = [
   [["retinol"], ["vitamin c"], "Retinol and vitamin C work best apart: vitamin C in the morning, retinol at night."],
 ];
 
+// Worn-outfit reference photos from YouCam's own API samples. `img` is the local thumbnail;
+// `ref` is the full-size original, passed to cloth-v4 as ref_file_url so nothing is re-uploaded.
+const YC_SAMPLES = "https://plugins-media.makeupar.com/strapi/assets/";
 const GARMENTS = [
-  { id: "g1", name: "Linen Shirt", price: 59, color: "#7aa6c2", kind: "top", category: "upper_body" },
-  { id: "g2", name: "Rust Knit Tee", price: 42, color: "#c9673a", kind: "top", category: "upper_body" },
-  { id: "g3", name: "Sage Wrap Dress", price: 88, color: "#8fae8b", kind: "dress", category: "full_body" },
-  { id: "g4", name: "Ink Slip Dress", price: 96, color: "#25304f", kind: "dress", category: "full_body" },
+  { id: "g1", name: "Grey Pocket Tee", price: 32, category: "upper_body", img: "samples/look-pocket-tee.jpg", ref: YC_SAMPLES + "small_clothes_04_441e848298.png" },
+  { id: "g2", name: "Oxford Shirt & Chinos", price: 110, category: "full_body", img: "samples/look-oxford-chinos.jpg", ref: YC_SAMPLES + "body_reshape_02_7777218379.jpg" },
+  { id: "g3", name: "Faux Fur Jacket Look", price: 139, category: "full_body", img: "samples/look-fur-jacket.jpg", ref: YC_SAMPLES + "clothes_reference_full_body_01_5a000d999f.png" },
 ];
-
-// Draws a simple flat-lay garment as SVG (used as thumbnail and as the reference image for one-click try-on).
-function garmentSvg(g) {
-  const c = g.color;
-  const shapes = g.kind === "dress"
-    ? `<path d="M150 40 L120 70 L130 120 L95 330 Q200 360 305 330 L270 120 L280 70 L250 40 Q200 70 150 40Z" fill="${c}"/><path d="M150 40 Q200 70 250 40" stroke="#00000022" stroke-width="3" fill="none"/>`
-    : `<path d="M140 50 L70 90 L95 140 L125 120 L125 320 L275 320 L275 120 L305 140 L330 90 L260 50 Q200 90 140 50Z" fill="${c}"/><path d="M140 50 Q200 90 260 50" stroke="#00000022" stroke-width="3" fill="none"/>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 380" width="400" height="380"><rect width="400" height="380" fill="#f4efe9"/>${shapes}</svg>`;
-}
-const garmentSvgUrl = (g) => "data:image/svg+xml;utf8," + encodeURIComponent(garmentSvg(g));

@@ -5,6 +5,7 @@ const VIEWS = ["scan", "report", "shop", "tryon"];
 const NEEDS_SCAN = ["report", "shop"];
 const MIN_SELFIE = 480; // YouCam SD skin analysis: short side >= 480px
 const state = { selfie: null, scores: null, mode: "demo", bag: [], budget: 120, person: null, garment: null, garmentItem: null, tryUrl: null, routine: null };
+const MIN_PERSON = [512, 384]; // cloth-v4: long side >= 512, short side >= 384
 
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
@@ -55,11 +56,9 @@ async function fileToDataUrl(file, max = 1600) {
     return { url: c.toDataURL("image/jpeg", 0.9), w: c.width, h: c.height };
   } finally { URL.revokeObjectURL(url); }
 }
-async function svgToJpeg(svgUrl) {
-  const img = await loadImage(svgUrl);
-  const c = document.createElement("canvas"); c.width = 800; c.height = 760; const x = c.getContext("2d");
-  x.fillStyle = "#f4efe9"; x.fillRect(0, 0, 800, 760); x.drawImage(img, 0, 0, 800, 760);
-  return c.toDataURL("image/jpeg", 0.92);
+async function sampleFile(url) {
+  const r = await fetch(url); if (!r.ok) throw new Error("Couldn't load the sample photo.");
+  const b = await r.blob(); return new File([b], url.split("/").pop(), { type: b.type });
 }
 async function api(path, body) {
   let r;
@@ -91,13 +90,15 @@ function setSelfieUrl(url) {
   state.selfie = url; $("#preview").src = url; $("#preview").hidden = false; $("#dropIdle").hidden = true;
   $("#analyze").disabled = false; fieldError("#scanErr", "");
 }
-setupDrop($("#drop"), $("#file"), async (file) => {
+async function useSelfie(file) {
   try {
     const img = await fileToDataUrl(file);
     if (Math.min(img.w, img.h) < MIN_SELFIE) throw new Error(`That photo is ${img.w}×${img.h}px. Skin analysis needs at least ${MIN_SELFIE}px on the short side.`);
     setSelfieUrl(img.url);
   } catch (e) { fieldError("#scanErr", e.message); }
-});
+}
+setupDrop($("#drop"), $("#file"), useSelfie);
+$("#sampleFace").onclick = async () => { stopCamera(); try { await useSelfie(await sampleFile("samples/sample-face.jpg")); } catch (e) { fieldError("#scanErr", e.message); } };
 let stream = null;
 function stopCamera() { if (stream) stream.getTracks().forEach((t) => t.stop()); stream = null; $("#video").hidden = true; $("#camBtn").textContent = "Use camera"; }
 $("#camBtn").onclick = async () => {
@@ -249,33 +250,40 @@ $("#checkout").onclick = () => {
 renderBag();
 
 // ---------- try-on ----------
-$("#garments").innerHTML = GARMENTS.map((g) => `<button class="garment" data-g="${g.id}" aria-pressed="false"><img src="${garmentSvgUrl(g)}" alt=""><span>${g.name}<br><b>${money(g.price)}</b></span></button>`).join("");
-$$(".garment").forEach((el) => (el.onclick = async () => {
+$("#garments").innerHTML = GARMENTS.map((g) => `<button class="garment" data-g="${g.id}" aria-pressed="false"><img src="${g.img}" alt=""><span>${g.name}<br><b>${money(g.price)}</b></span></button>`).join("");
+$$(".garment").forEach((el) => (el.onclick = () => {
   $$(".garment").forEach((x) => { x.classList.remove("on"); x.setAttribute("aria-pressed", "false"); }); el.classList.add("on"); el.setAttribute("aria-pressed", "true");
   const g = GARMENTS.find((x) => x.id === el.dataset.g);
-  state.garment = await svgToJpeg(garmentSvgUrl(g)); state.garmentItem = g; $("#category").value = g.category;
+  state.garment = null; state.garmentItem = g; $("#category").value = g.category;
   $("#garmentIdle").textContent = "Or upload your own garment photo"; refreshTry();
 }));
-setupDrop($("#personDrop"), $("#personFile"), async (f) => {
-  try { const img = await fileToDataUrl(f); state.person = img.url; $("#personPrev").src = img.url; $("#personPrev").hidden = false; $("#personIdle").hidden = true; fieldError("#tryErr", ""); refreshTry(); }
-  catch (e) { fieldError("#tryErr", e.message); }
-});
+async function usePerson(f) {
+  try {
+    const img = await fileToDataUrl(f);
+    if (Math.max(img.w, img.h) < MIN_PERSON[0] || Math.min(img.w, img.h) < MIN_PERSON[1]) throw new Error(`That photo is ${img.w}×${img.h}px. Try-on needs at least ${MIN_PERSON[0]}×${MIN_PERSON[1]}px.`);
+    state.person = img.url; $("#personPrev").src = img.url; $("#personPrev").hidden = false; $("#personIdle").hidden = true; fieldError("#tryErr", ""); refreshTry();
+  } catch (e) { fieldError("#tryErr", e.message); }
+}
+setupDrop($("#personDrop"), $("#personFile"), usePerson);
+$("#sampleModel").onclick = async () => { try { await usePerson(await sampleFile("samples/sample-model.jpg")); } catch (e) { fieldError("#tryErr", e.message); } };
 setupDrop($("#garmentDrop"), $("#garmentFile"), async (f) => {
   try { const img = await fileToDataUrl(f); state.garment = img.url; state.garmentItem = null; $$(".garment").forEach((x) => { x.classList.remove("on"); x.setAttribute("aria-pressed", "false"); }); $("#garmentIdle").textContent = "Your garment photo is loaded. Click to change it."; fieldError("#tryErr", ""); refreshTry(); }
   catch (e) { fieldError("#tryErr", e.message); }
 });
+const hasGarment = () => !!(state.garment || state.garmentItem);
 function refreshTry() {
-  const ok = state.person && state.garment; $("#tryBtn").disabled = !ok;
-  $("#tryHint").textContent = ok ? "" : !state.person && !state.garment ? "Add your photo and pick a garment." : !state.person ? "Add a full-body photo of yourself." : "Pick or upload a garment.";
+  const ok = state.person && hasGarment(); $("#tryBtn").disabled = !ok;
+  $("#tryHint").textContent = ok ? "" : !state.person && !hasGarment() ? "Add your photo and pick a garment." : !state.person ? "Add a full-body photo of yourself." : "Pick or upload a garment.";
 }
 $("#tryBtn").onclick = async () => {
   busy("Dressing you up. This can take up to a minute.");
   try {
-    const r = await api("/api/tryon", { person: state.person, garment: state.garment, category: $("#category").value });
+    const g = state.garmentItem;
+    const r = await api("/api/tryon", { person: state.person, garment: state.garment, garmentUrl: state.garment ? null : g.ref, category: $("#category").value });
     if (r.url) {
       state.tryUrl = r.url; $("#tryResult").innerHTML = `<img src="${r.url}" alt="You wearing the selected garment">`; $("#tryDl").href = r.url; $("#tryDl").hidden = false;
     } else {
-      $("#tryResult").innerHTML = `<div class="compare"><img src="${state.person}" alt="Your photo"><img src="${state.garment}" alt="Selected garment"></div><p class="note" style="padding:12px">${r.note}</p>`; $("#tryDl").hidden = true;
+      $("#tryResult").innerHTML = `<div class="compare"><img src="${state.person}" alt="Your photo"><img src="${state.garment || g.img}" alt="Selected garment"></div><p class="note" style="padding:12px">${r.note}</p>`; $("#tryDl").hidden = true;
     }
     $("#tryAdd").hidden = !state.garmentItem;
     if (state.garmentItem) { const inb = inBag(state.garmentItem.id); $("#tryAdd").disabled = inb; $("#tryAdd").textContent = inb ? "In bag" : `Add ${state.garmentItem.name} to bag`; }
