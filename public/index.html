@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GlowFit — Skin scan, routine and try-on</title>
+<meta name="description" content="Scan your face with AI skin analysis, get a routine that fits your budget and skips ingredient clashes, then try on clothes before you buy.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="#" id="home">GlowFit</a>
+  <nav aria-label="Main">
+    <button class="tab on" data-view="scan">Scan</button>
+    <button class="tab" data-view="report" disabled>Report</button>
+    <button class="tab" data-view="shop" disabled>Routine</button>
+    <button class="tab" data-view="tryon">Try-on</button>
+    <button class="cartbtn" id="cartBtn">Bag <b id="cartCount">0</b></button>
+  </nav>
+</header>
+<div id="modeBanner" class="banner" hidden></div>
+
+<main>
+<!-- HOME / SCAN -->
+<section id="scan" class="view on">
+  <div class="hero">
+    <div class="hero-text">
+      <h1>Know your skin.<br>Shop what works.</h1>
+      <p class="lede">Scan once. Get a routine that fits your budget and skips ingredient clashes, then try on a look before you buy it.</p>
+    </div>
+    <img class="plate" src="assets/plantarum-historia-succulentarum-plate-15-bhl280708.jpg" alt="Botanical plate of Aloe vera by Redouté, 1802" width="300" height="396" fetchpriority="high">
+    <div class="stage">
+      <div class="scanner" data-ui>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a selfie">
+          <input type="file" id="file" accept="image/jpeg,image/png" hidden>
+          <div id="dropIdle"><strong>Drop a selfie here</strong><span>or click to browse. JPG or PNG, face front-on in even light.</span></div>
+          <img id="preview" alt="Your selfie preview" hidden>
+        </div>
+        <video id="video" autoplay playsinline hidden></video>
+        <div class="scanrow"><button class="go" id="analyze" disabled>Analyze my skin</button><button class="alt" id="camBtn">Use camera</button></div>
+        <p class="note">Your photo goes only to the YouCam API for analysis. This app does not store it.</p>
+      </div>
+    </div>
+  </div>
+
+  <section class="cmd" data-ui-section aria-labelledby="cmdlabel">
+    <div class="cmdbox" data-ui>
+      <label id="cmdlabel" class="sr" for="cmdq">Find a feature</label>
+      <input id="cmdq" type="text" placeholder="Find a feature" autocomplete="off">
+      <ul id="cmdlist" role="listbox"></ul>
+    </div>
+  </section>
+
+  <section class="steps">
+    <h2>From one selfie to one bag.</h2>
+    <div class="stepgrid">
+      <div class="step"><img src="assets/plantarum-historia-succulentarum-plate-27-bhl280760.jpg" alt="Botanical plate from Redouté's succulent plants, 1802" loading="lazy" width="400" height="300"><h3>It reads eight concerns.</h3><p>Wrinkles, blemishes, pores, smoothness, redness, oil, hydration and radiance, each scored from 1 to 100 by YouCam's skin analysis.</p></div>
+      <div class="step"><img src="assets/the-american-flora-vol-1-1855-pl.jpg" alt="Aloe vera and Socotrine aloe, plate from The American Flora, 1855" loading="lazy" width="400" height="300"><h3>It builds around your weakest three.</h3><p>The routine covers what scored lowest, within the budget you set, and checks every pair of actives before it recommends them.</p></div>
+      <div class="step"><img src="assets/the-dictionary-of-needlework-an-encyclopaedia-of.jpg" alt="Needlework stitch diagrams from The Dictionary of Needlework, 1882" loading="lazy" width="400" height="300"><h3>It fits clothes too.</h3><p>Upload a full-body photo and a garment, and YouCam's try-on shows the result. Add it to the same bag.</p></div>
+    </div>
+  </section>
+</section>
+
+<!-- REPORT -->
+<section id="report" class="view">
+  <div class="split">
+    <div class="photo"><div class="imgwrap"><img id="reportImg" alt="Your scan"><img id="maskImg" class="mask" alt="" hidden></div><p class="note" id="maskNote"></p></div>
+    <div>
+      <div class="scoreline"><div class="big"><span id="overall">–</span><small>overall</small></div><div><h2 id="headline"></h2><p id="subline" class="muted"></p></div></div>
+      <div id="bars" class="bars"></div>
+      <div class="panel hist"><h3>Your progress</h3><div id="history"></div></div>
+      <button class="go" id="toShop">Build my routine</button>
+    </div>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop" class="view">
+  <div class="split wide">
+    <div>
+      <h2>Your routine</h2>
+      <p class="muted" id="routineIntro"></p>
+      <div class="budget"><label for="budget">Budget <b id="budgetVal">$120</b></label><input type="range" id="budget" min="30" max="250" step="5" value="120"></div>
+      <div id="warnings"></div>
+      <div id="routine"></div>
+    </div>
+    <aside class="panel sticky">
+      <h3>Routine total</h3>
+      <div id="routineTotal" class="total"></div>
+      <button class="go" id="addAll">Add routine to bag</button>
+      <p class="note">Picks the best-fit product per concern within budget, then checks ingredient clashes.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- TRY ON -->
+<section id="tryon" class="view">
+  <div class="split wide">
+    <div class="panel">
+      <h3>Your photo</h3>
+      <p class="note">Full-body, front-facing, one person.</p>
+      <label class="upload" id="personDrop"><input type="file" id="personFile" accept="image/jpeg,image/png" hidden><span id="personIdle">Upload photo</span><img id="personPrev" hidden alt="Your full-body photo"></label>
+      <h3 style="margin-top:28px">Pick a garment</h3>
+      <div id="garments" class="garments"></div>
+      <label class="upload small" id="garmentDrop"><input type="file" id="garmentFile" accept="image/jpeg,image/png" hidden><span>Or upload your own garment photo</span></label>
+      <div class="row"><select id="category" aria-label="Garment type"><option value="auto">Auto-detect</option><option value="upper_body">Top</option><option value="lower_body">Bottom</option><option value="full_body">Full body</option></select><button class="go" id="tryBtn" disabled>Try it on</button></div>
+    </div>
+    <div class="panel result">
+      <h3>Result</h3>
+      <div id="tryResult" class="tryresult"><p class="muted">Your try-on appears here.</p></div>
+      <div class="row" id="tryActions" hidden><button class="alt" id="tryAdd">Add to bag</button><a class="alt" id="tryDl" download="glowfit-tryon.png">Download</a></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="tile t-state"><p>Skin and style, in one bag.</p><small>Demo catalog: prices and brands are fictional.</small></div>
+  <div class="tile t-nav"><ul><li><button data-go="scan">Scan</button></li><li><button data-go="shop">Routine</button></li><li><button data-go="tryon">Try-on</button></li></ul></div>
+  <div class="tile t-time"><p>Skin check, any time.</p><small>Photos are analyzed, not stored.</small></div>
+  <div class="tile t-mail"><a href="mailto:hello@glowfit.example">hello@glowfit.example</a></div>
+  <div class="tile t-word" aria-hidden="true">GlowFit</div>
+  <a class="tile t-cta" href="#" data-go="scan"><span>Scan your skin</span><svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="#0f0f0f" stroke-width="4" aria-hidden="true"><path d="M8 32 32 8M14 8h18v18"/></svg></a>
+</footer>
+
+<p class="credits">Pictures: <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_15)_BHL280708.jpg">Plate 15</a> and <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_27)_BHL280760.jpg">Plate 27</a> by Pierre-Joseph Redouté, 1802, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_American_Flora._Vol._1,_1855_-_pl._15_Aloe_vera,_Aloe_succotrina_(6022329218).jpg">The American Flora, 1855</a>, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_dictionary_of_needlework_-_an_encyclopaedia_of_artistic,_plain,_and_fancy_needlework_dealing_fully_with_the_details_of_all_the_stitches_employed,_the_method_of_working,_the_materials_used,_the_(14595702850).jpg">The Dictionary of Needlework, 1882</a>, Internet Archive Book Images, no known copyright restrictions. All via Wikimedia Commons.</p>
+<aside id="bag" class="bag" hidden>
+  <div class="bagHead"><h3>Your bag</h3><button id="bagClose" aria-label="Close bag">Close</button></div>
+  <div id="bagItems"></div>
+  <div class="bagFoot"><div class="total" id="bagTotal"></div><button class="go" id="checkout">Checkout (demo)</button></div>
+</aside>
+<div id="busy" class="busy" hidden><div class="spin"></div><p id="busyMsg">Working…</p></div>
+<div id="toast" class="toast" hidden></div>
+<script src="catalog.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
