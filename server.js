@@ -59,7 +59,7 @@ async function pollTask(route, id, timeoutMs = 90000) {
     const r = await yc("GET", `${route}/${encodeURIComponent(id)}`);
     const st = r.data && r.data.task_status;
     if (st === "success") return r.data;
-    if (st === "error") throw new ApiError(friendly(r.data.error_code || r.data.error), r.data.error_code, 422);
+    if (st === "error") { const code = r.data.error_code || r.data.error; throw new ApiError(FRIENDLY[code] || r.data.error_message || friendly(code), code, 422); }
     await new Promise((r) => setTimeout(r, 1800));
   }
   throw new ApiError("YouCam took too long. Please try again.", "timeout", 504);
@@ -102,7 +102,7 @@ function demoSkin(image) {
 
 // ---------- Virtual try-on ----------
 async function tryOn({ person, garment, garmentUrl, category }) {
-  const cat = ["upper_body", "lower_body", "full_body", "shoes"].includes(category) ? category : "auto";
+  const cat = ["upper_body", "lower_body", "full_body", "shoes", "outer"].includes(category) ? category : "auto";
   if (!KEY) {
     await new Promise((r) => setTimeout(r, 1200));
     return { mode: "demo", url: null, note: "Demo mode: add a YOUCAM_API_KEY to generate real try-on images." };

@@ -7,6 +7,8 @@ One flow for beauty **and** fashion shopping:
 3. **Routine & shop** — builds a budget-aware routine from the weakest concerns, picks best value per concern, and runs an **ingredient-clash checker** (e.g. retinol + exfoliating acids). Add to bag.
 4. **Try-on** — YouCam **AI Clothes Virtual Try-On** (`cloth-v4`) with a catalog garment or your own garment photo, then add the item to the same bag.
 
+Also: every step has its own URL and the back button works; your last scan, budget and bag survive a reload; photos below 480px are rejected with an inline message before any API call; the bag is a keyboard-accessible dialog with a demo checkout.
+
 ## Run
 ```bash
 cp .env.example .env     # add YOUCAM_API_KEY (optional)
@@ -20,6 +22,5 @@ Without a key the app runs in **demo mode** (placeholder scores, no try-on image
 - `public/` — vanilla JS front end (`app.js`), product/garment data and clash rules (`catalog.js`).
 
 ## Known gaps / verify before submitting
-- `garment_category` values (`upper_body`, `lower_body`, `full_body`) were inferred from the docs' `full_body` example — confirm against the OpenAPI spec.
 - Catalog prices/brands are fictional; garment thumbnails are flat SVGs (real garment photos give better try-on results).
 - Not yet tested against the live API (no key was available when this was built).

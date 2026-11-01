@@ -14,13 +14,13 @@
   <a class="brand" href="#" id="home">GlowFit</a>
   <nav aria-label="Main">
     <button class="tab on" data-view="scan">Scan</button>
-    <button class="tab" data-view="report" disabled>Report</button>
-    <button class="tab" data-view="shop" disabled>Routine</button>
+    <button class="tab" data-view="report" disabled title="Scan your skin first">Report</button>
+    <button class="tab" data-view="shop" disabled title="Scan your skin first">Routine</button>
     <button class="tab" data-view="tryon">Try-on</button>
-    <button class="cartbtn" id="cartBtn">Bag <b id="cartCount">0</b></button>
+    <button class="cartbtn" id="cartBtn" aria-haspopup="dialog" aria-controls="bag">Bag <b id="cartCount">0</b></button>
   </nav>
 </header>
-<div id="modeBanner" class="banner" hidden></div>
+<div id="modeBanner" class="banner" role="status" hidden></div>
 
 <main>
 <!-- HOME / SCAN -->
@@ -40,6 +40,7 @@
         </div>
         <video id="video" autoplay playsinline hidden></video>
         <div class="scanrow"><button class="go" id="analyze" disabled>Analyze my skin</button><button class="alt" id="camBtn">Use camera</button></div>
+        <p class="err" id="scanErr" role="alert" hidden></p>
         <p class="note">Your photo goes only to the YouCam API for analysis. This app does not store it.</p>
       </div>
     </div>
@@ -71,7 +72,7 @@
       <div class="scoreline"><div class="big"><span id="overall">–</span><small>overall</small></div><div><h2 id="headline"></h2><p id="subline" class="muted"></p></div></div>
       <div id="bars" class="bars"></div>
       <div class="panel hist"><h3>Your progress</h3><div id="history"></div></div>
-      <button class="go" id="toShop">Build my routine</button>
+      <div class="row"><button class="go" id="toShop">Build my routine</button><button class="alt" id="rescan">New scan</button></div>
     </div>
   </div>
 </section>
@@ -101,16 +102,17 @@
     <div class="panel">
       <h3>Your photo</h3>
       <p class="note">Full-body, front-facing, one person.</p>
-      <label class="upload" id="personDrop"><input type="file" id="personFile" accept="image/jpeg,image/png" hidden><span id="personIdle">Upload photo</span><img id="personPrev" hidden alt="Your full-body photo"></label>
+      <div class="upload" id="personDrop" role="button" tabindex="0" aria-label="Upload a full-body photo of yourself"><input type="file" id="personFile" accept="image/jpeg,image/png" hidden><span id="personIdle">Upload a full-body photo</span><img id="personPrev" hidden alt="Your full-body photo"></div>
       <h3 style="margin-top:28px">Pick a garment</h3>
       <div id="garments" class="garments"></div>
-      <label class="upload small" id="garmentDrop"><input type="file" id="garmentFile" accept="image/jpeg,image/png" hidden><span>Or upload your own garment photo</span></label>
-      <div class="row"><select id="category" aria-label="Garment type"><option value="auto">Auto-detect</option><option value="upper_body">Top</option><option value="lower_body">Bottom</option><option value="full_body">Full body</option></select><button class="go" id="tryBtn" disabled>Try it on</button></div>
+      <div class="upload small" id="garmentDrop" role="button" tabindex="0" aria-label="Upload your own garment photo"><input type="file" id="garmentFile" accept="image/jpeg,image/png" hidden><span id="garmentIdle">Or upload your own garment photo</span></div>
+      <div class="row"><select id="category" aria-label="Garment type"><option value="auto">Auto-detect</option><option value="upper_body">Top</option><option value="lower_body">Bottom</option><option value="full_body">Full body</option><option value="outer">Outerwear</option><option value="shoes">Shoes</option></select><button class="go" id="tryBtn" disabled>Try it on</button></div>
+      <p class="note" id="tryHint" aria-live="polite"></p><p class="err" id="tryErr" role="alert" hidden></p>
     </div>
     <div class="panel result">
       <h3>Result</h3>
-      <div id="tryResult" class="tryresult"><p class="muted">Your try-on appears here.</p></div>
-      <div class="row" id="tryActions" hidden><button class="alt" id="tryAdd">Add to bag</button><a class="alt" id="tryDl" download="glowfit-tryon.png">Download</a></div>
+      <div id="tryResult" class="tryresult" aria-live="polite"><p class="muted">Your try-on appears here.</p></div>
+      <div class="row" id="tryActions" hidden><button class="go" id="tryAdd">Add to bag</button><a class="alt" id="tryDl" download="glowfit-tryon.jpg" target="_blank" rel="noopener" hidden>Open full size</a></div>
     </div>
   </div>
 </section>
@@ -126,13 +128,15 @@
 </footer>
 
 <p class="credits">Pictures: <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_15)_BHL280708.jpg">Plate 15</a> and <a href="https://commons.wikimedia.org/wiki/File:Plantarum_historia_succulentarum_%3D_(Plate_27)_BHL280760.jpg">Plate 27</a> by Pierre-Joseph Redouté, 1802, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_American_Flora._Vol._1,_1855_-_pl._15_Aloe_vera,_Aloe_succotrina_(6022329218).jpg">The American Flora, 1855</a>, public domain; <a href="https://commons.wikimedia.org/wiki/File:The_dictionary_of_needlework_-_an_encyclopaedia_of_artistic,_plain,_and_fancy_needlework_dealing_fully_with_the_details_of_all_the_stitches_employed,_the_method_of_working,_the_materials_used,_the_(14595702850).jpg">The Dictionary of Needlework, 1882</a>, Internet Archive Book Images, no known copyright restrictions. All via Wikimedia Commons.</p>
-<aside id="bag" class="bag" hidden>
-  <div class="bagHead"><h3>Your bag</h3><button id="bagClose" aria-label="Close bag">Close</button></div>
+<div id="scrim" class="scrim" hidden></div>
+<aside id="bag" class="bag" role="dialog" aria-modal="true" aria-labelledby="bagTitle" hidden>
+  <div class="bagHead"><h3 id="bagTitle">Your bag</h3><button id="bagClose" aria-label="Close bag">Close</button></div>
   <div id="bagItems"></div>
+  <p id="orderDone" class="done" role="status" hidden></p>
   <div class="bagFoot"><div class="total" id="bagTotal"></div><button class="go" id="checkout">Checkout (demo)</button></div>
 </aside>
-<div id="busy" class="busy" hidden><div class="spin"></div><p id="busyMsg">Working…</p></div>
-<div id="toast" class="toast" hidden></div>
+<div id="busy" class="busy" role="status" aria-live="polite" hidden><div class="spin"></div><p id="busyMsg">Working…</p></div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 <script src="catalog.js"></script>
 <script src="app.js"></script>
 </body>
