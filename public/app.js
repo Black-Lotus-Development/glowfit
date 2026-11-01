@@ -205,7 +205,11 @@ function renderRoutine() {
       <div><b>${p.name}</b> <span class="muted">${p.brand}</span><div class="tags">${p.concerns.map((c) => `<span class="tag">${CONCERN_META[c].label}</span>`).join("")}<span class="slot">${slotName[p.slot]}</span></div></div>
       <div class="pr"><b>${money(p.price)}</b><button class="alt sm" data-add="${p.id}" ${inBag(p.id) ? "disabled" : ""}>${inBag(p.id) ? "In bag" : "Add"}</button></div></div>`).join("");
   const clashes = findClashes(r.items);
+  // products that would treat a target concern but were left out because they clash with the routine
+  const avoided = PRODUCTS.filter((p) => !r.items.includes(p) && p.concerns.some((c) => r.needs.some((n) => n.k === c)))
+    .map((p) => ({ p, c: findClashes([...r.items, p]).find((c) => c.a === p || c.b === p) })).filter((x) => x.c).slice(0, 2);
   $("#warnings").innerHTML = clashes.map((c) => `<div class="warn" role="note"><b>${c.a.name}</b> and <b>${c.b.name}</b>: ${c.msg}</div>`).join("")
+    + avoided.map(({ p, c }) => `<div class="warn" role="note">Left out <b>${p.name}</b>: it clashes with <b>${(c.a === p ? c.b : c.a).name}</b>. ${c.msg}</div>`).join("")
     + (r.overBudget ? `<div class="warn" role="note">Cleanser and SPF alone cost ${money(r.total)}, over your ${money(state.budget)} budget. They stay in: every routine needs them.</div>` : "")
     + (r.uncovered.length ? `<div class="warn" role="note">Your budget doesn't stretch to ${r.uncovered.map((n) => CONCERN_META[n.k].label.toLowerCase()).join(", ")}. Raise it to include ${r.uncovered.length > 1 ? "them" : "it"}.</div>` : "")
     + (!clashes.length ? `<div class="warn okmsg" role="note">No ingredient clashes in this routine.</div>` : "");
