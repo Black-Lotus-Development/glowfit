@@ -132,7 +132,9 @@ function renderReport() {
   const sorted = Object.entries(sc).sort((a, b) => a[1].score - b[1].score);
   $("#headline").textContent = ov >= 75 ? "Your skin is in great shape" : ov >= 55 ? "A solid base with a few things to tune" : "Let's give your skin some focused care";
   $("#subline").textContent = `Strongest: ${CONCERN_META[sorted.at(-1)[0]].label}. Focus on: ${CONCERN_META[sorted[0][0]].label}.`;
-  $("#bars").innerHTML = sorted.map(([k, v]) => `<button class="bar" data-k="${k}" aria-pressed="false"><span class="t"><span>${CONCERN_META[k].label}${v.score < 72 ? '<em class="focus">Focus</em>' : ""}</span><i>${v.score}<span class="sr"> out of 100</span></i></span><span class="track" aria-hidden="true"><span style="width:${v.score}%;background:${v.score < 72 ? "var(--accent)" : "#8f8f8f"}"></span></span><small>${CONCERN_META[k].tip}</small></button>`).join("");
+  // "Focus" marks exactly the concerns the routine targets: the three lowest under 72
+  const focus = new Set(sorted.filter(([, v]) => v.score < 72).slice(0, 3).map(([k]) => k));
+  $("#bars").innerHTML = sorted.map(([k, v]) => `<button class="bar" data-k="${k}" aria-pressed="false"><span class="t"><span>${CONCERN_META[k].label}${focus.has(k) ? '<em class="focus">Focus</em>' : ""}</span><i>${v.score}<span class="sr"> out of 100</span></i></span><span class="track" aria-hidden="true"><span style="width:${v.score}%;background:${focus.has(k) ? "var(--accent)" : "#8f8f8f"}"></span></span><small>${CONCERN_META[k].tip}</small></button>`).join("");
   $("#maskNote").textContent = state.mode === "live" ? "Select a concern to see where it was detected." : "Detection overlays appear with a live API key.";
   $$(".bar").forEach((b) => (b.onclick = () => {
     const was = b.getAttribute("aria-pressed") === "true";
