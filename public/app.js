@@ -143,7 +143,8 @@ function renderReport() {
     const img = $("#maskImg"), m = sc[b.dataset.k].masks[0];
     if (was) { img.hidden = true; return; }
     b.classList.add("on"); b.setAttribute("aria-pressed", "true");
-    if (m) { img.src = m; img.hidden = false; } else img.hidden = true;
+    // YouCam mask URLs expire after a few hours, so a restored scan may have dead links
+    if (m) { img.onerror = () => { img.hidden = true; $("#maskNote").textContent = "This scan's detection overlays have expired. Run a new scan to see them."; }; img.src = m; img.hidden = false; } else img.hidden = true;
   }));
   renderHistory();
 }
@@ -292,6 +293,8 @@ $("#tryBtn").onclick = async () => {
     $("#tryAdd").hidden = !state.garmentItem;
     if (state.garmentItem) { const inb = inBag(state.garmentItem.id); $("#tryAdd").disabled = inb; $("#tryAdd").textContent = inb ? "In bag" : `Add ${state.garmentItem.name} to bag`; }
     $("#tryActions").hidden = !(state.garmentItem || r.url);
+    // on narrow screens the result panel sits below the form
+    $(".result").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
   } catch (e) { fieldError("#tryErr", e.message); } finally { busy(""); }
 };
 $("#tryAdd").onclick = () => { const g = state.garmentItem; if (g) { addToBag({ ...g, kind: "garment" }); $("#tryAdd").disabled = true; $("#tryAdd").textContent = "In bag"; } };
