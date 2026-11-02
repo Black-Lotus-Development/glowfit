@@ -129,6 +129,8 @@ async function tryOn({ person, garment, garmentUrl, category }) {
 
 // ---------- HTTP ----------
 function readBody(req, limit = 25 * 1024 * 1024) {
+  // On Vercel the runtime may already have parsed the JSON body
+  if (req.body && typeof req.body === "object" && !Buffer.isBuffer(req.body)) return Promise.resolve(req.body);
   return new Promise((resolve, reject) => {
     let size = 0; const chunks = [];
     req.on("data", (c) => { size += c.length; if (size > limit) { reject(new ApiError("Payload too large", "too_big", 413)); req.destroy(); } else chunks.push(c); });
@@ -143,7 +145,7 @@ const routes = {
   "POST /api/tryon": async (req) => tryOn(await readBody(req)),
 };
 
-http.createServer(async (req, res) => {
+async function handler(req, res) {
   const url = new URL(req.url, "http://x");
   const h = routes[`${req.method} ${url.pathname}`];
   if (h) {
@@ -155,4 +157,9 @@ http.createServer(async (req, res) => {
   if (!file.startsWith(PUBLIC) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); return res.end("Not found"); }
   res.writeHead(200, { "Content-Type": MIME[path.extname(file)] || "application/octet-stream" });
   fs.createReadStream(file).pipe(res);
-}).listen(PORT, () => console.log(`GlowFit on http://localhost:${PORT}  [${KEY ? "LIVE YouCam API" : "DEMO mode (no YOUCAM_API_KEY)"}]`));
+}
+module.exports = handler; // Vercel runs this as a function (api/index.js); locally, `node server.js` serves it
+
+if (require.main === module) {
+  http.createServer(handler).listen(PORT, () => console.log(`GlowFit on http://localhost:${PORT}  [${KEY ? "LIVE YouCam API" : "DEMO mode (no YOUCAM_API_KEY)"}]`));
+}
